@@ -1,0 +1,216 @@
+*{
+    box-sizing: border-box;
+}
+body, html{
+    margin:0;
+    padding:0;
+}
+.container::after{
+    content:'';
+    display:block;
+    clear:both;
+}
+.container{
+    width:260px;
+    padding:5px;
+
+    font-size:12px;
+    direction:ltr;
+    font-family: 'Apple SD Gothic Neo',arial,sans-serif;
+
+    color:#333;
+    user-select: none;
+}
+.container > .margin{
+    float:left;
+    width:100%;
+    height:5px;
+}
+.container > .title{
+    float:left;
+    width:150px;
+    height:31px;
+
+    font-size:1.2em;
+    text-align: center;
+
+    font-weight: bold;
+    color:#aaa;
+
+    line-height: 30px;
+}
+
+.container > .submit{
+    position: relative;
+    
+    float:left;
+    width:100px;
+    height:30px;
+
+    font-size:1.15em;
+    line-height:31px;
+    text-align: center;
+
+    background:#0288d1;
+    color:#fff;
+
+    border-radius: 3px;
+
+    overflow: hidden;    
+    transition: background-color 0.5s, box-shadow 0.2s;
+}
+.container > .submit:hover{
+    background-color:rgba(2, 136, 209, 0.65);
+}
+.container > .submit:active{
+    box-shadow:0 0 10px rgba(0,0,0,0.4) inset;
+    background-color:rgba(2, 136, 209, 1);
+}
+.container > .submit::before{
+    content:"Upload";
+}
+.container > .submit > input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width:100%;
+    height:100%;
+    opacity: 0;
+}
+.container > .submit.loading{
+    background-color:#9dddff;
+}
+.container > .submit.loading:before{
+    content:"Reading...";
+}
+
+.container > .subtitles-info {
+    float:left;
+    width:100%;
+    height:35px;
+    line-height: 35px;
+    padding:0 5px;
+    
+    background-color:#f5f5f5;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    overflow: hidden;
+    transition: height 0.2s;
+}
+
+.container > .subtitles-info.folded {
+    margin:0;
+    height:0px;
+}
+
+.container > .video-list{
+    position: relative;
+    float:left;
+    width:100%;
+    border-top:1px solid #c0d2ff;
+}
+.container > .video-list.loading > .spinner .double-bounce1,
+.container > .video-list.loading > .spinner .double-bounce2{
+    background-color:#ddd;
+}
+.container > .video-list.folded{
+    border:0;
+}
+.container > .video-list.empty{
+    text-align: center;
+    font-weight: bold;
+    padding:5px 0;
+    background:#e5e5e5;
+    border-color:#d5d5d5;
+}
+.container > .video-list.empty::before{
+    content:"Not Found Video Tags.";
+}
+
+.container > .video-list > .item{
+    width:100%;
+    padding:5px 10px;
+    background-color: #fafcff;
+    cursor:pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.container > .video-list > .item:nth-child(2n-1){
+    background-color:#f0f8fe;
+}
+
+.container > .video-list > .item:hover{
+    background-color:#dcf0ff;
+}
+.container > .video-list > .item:active{
+    box-shadow: 0 0 10px #ccdce7 inset;
+}
+
+.container > .video-list > .item:last-child{
+    border-bottom:1px solid #c0d2ff;
+}
+
+.container > .loading{
+    pointer-events:none;    
+}
+.container > .loading > .spinner {
+    display: block;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+.container > .loading > .spinner .double-bounce1,
+.container > .loading > .spinner .double-bounce2{
+    background-color:#fff;
+}
+
+
+/* spinner (http://tobiasahlin.com/spinkit/) */
+.spinner {
+  display: none;
+    
+  width: 40px;
+  height: 40px;
+
+  position: relative;
+  margin: 100px auto;
+}
+
+.double-bounce1, .double-bounce2 {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #333;
+  opacity: 0.6;
+  position: absolute;
+  top: 0;
+  left: 0;
+  
+  -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+  animation: sk-bounce 2.0s infinite ease-in-out;
+}
+
+.double-bounce2 {
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+@-webkit-keyframes sk-bounce {
+  0%, 100% { -webkit-transform: scale(0.0) }
+  50% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bounce {
+  0%, 100% { 
+    transform: scale(0.0);
+    -webkit-transform: scale(0.0);
+  } 50% { 
+    transform: scale(1.0);
+    -webkit-transform: scale(1.0);
+  }
+}

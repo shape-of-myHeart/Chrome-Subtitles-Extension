@@ -1,0 +1,22 @@
+{
+    "manifest_version": 2,
+    "name": "Chroem Subtitles",
+    "version": "1.0",
+    "description": "사이트 내에 비디오 위에 자막을 띄어 줍니다.",
+    "browser_action": {
+        "default_title": "",
+        "default_popup": "main.html"
+    },
+    "permissions": [
+        "tabs",
+        "http://*/*",
+        "https://*/*",
+        "<all_urls>"
+    ],
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": false
+    }
+}
