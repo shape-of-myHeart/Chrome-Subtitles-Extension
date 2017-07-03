@@ -135,6 +135,12 @@ body, html{
     cursor:pointer;
     transition: background-color 0.2s, box-shadow 0.2s;
 }
+.container > .video-list > .item.error-no-subtitles:after{
+    content:'Upload Subtitles Please.';
+    float:right;
+    color:red;
+    font-size:0.9em;
+}
 
 .container > .video-list > .item:nth-child(2n-1){
     background-color:#f0f8fe;
@@ -168,7 +174,6 @@ body, html{
 .container > .loading > .spinner .double-bounce2{
     background-color:#fff;
 }
-
 
 /* spinner (http://tobiasahlin.com/spinkit/) */
 .spinner {

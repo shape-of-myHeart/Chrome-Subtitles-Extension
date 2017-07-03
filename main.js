@@ -17,11 +17,12 @@ videoList.loading = () => videoList.classList.add('loading');
 videoList.unload = () => videoList.classList.remove('loading');
 
 videoList.setting = (frameId, length) => {
+    console.log(videos);
+    console.log(length);
+
     videoList.classList.remove("folded");
     videoList.classList.remove("empty");
-    videoList.innerHTML = "";
 
-    console.log(frameId);
     videos[frameId] = length;
 
     let keys = Object.keys(videos);
@@ -32,9 +33,10 @@ videoList.setting = (frameId, length) => {
     }
 
     if (empty === 0) {
-        index.classList.add("empty");
+        videoList.classList.add("empty");
         return;
     }
+
     for (let i = 0; i < length; i++) {
         let div = document.createElement("div");
 
@@ -45,19 +47,24 @@ videoList.setting = (frameId, length) => {
         div.innerHTML = `Video <b>${frameId}</b>-${i + 1}`;
 
         div.addEventListener("mouseenter",
-            () => connection.postMessage({ type: "highlightVideoArea", data: { index: i, frameId: frameId } })
+            () => connections[frameId].postMessage({ type: "highlightVideoArea", data: { index: i } })
         );
 
         div.addEventListener("mouseleave",
-            () => connection.postMessage({ type: "unHighlightVideoArea", data: { index: i, frameId: frameId } })
+            () => connections[frameId].postMessage({ type: "unHighlightVideoArea", data: { index: i } })
         );
 
         div.addEventListener("click",
             () => {
                 if (activedSmi === undefined) {
+                    div.classList.add("error-no-subtitles");
                     return;
                 }
-                connection.postMessage({ type: "applySubtitles", data: { index: i, smiData: activedSmi, frameId: frameId } })
+
+                div.classList.remove("error-no-subtitles");
+                div.classList.add("applied");
+                
+                connections[frameId].postMessage({ type: "applySubtitles", data: { index: i, smiData: activedSmi } })
             }
         );
 
@@ -71,6 +78,12 @@ fileUpload.addEventListener("change", e => {
     let file = e.target.files[0];
     let reader = new FileReader();
     submit.loading();
+    
+    if(fileUpload.files.item(0).name.substr(-3).toLowerCase() !== "smi"){
+        submit.unload();
+        chrome.tabs.executeScript(null, { code: 'alert("This file is not smi File.");', allFrames: true });
+        return;
+    }
 
     reader.onload = e => {
         submit.unload();
@@ -86,37 +99,29 @@ fileUpload.addEventListener("change", e => {
         submit.unload();
     }
 
-    reader.readAsText(file);
+    reader.readAsText(file, "CP1251");
 });
 
 /* execute script */
-chrome.tabs.executeScript(null, { file: './injection.js', allFrames: true, runAt: "document_start" });
+chrome.tabs.executeScript(null, { file: './injection.js', allFrames: true });
 
-chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
-        sendResponse({ farewell: request.greeting });
-    }
-);
+let connections = {};
 
-let connection;
-chrome.runtime.onConnect.addListener(pConnection => {
-    connection = pConnection;
-    console.log = msg => connection.postMessage({ type: 'console-log', data: msg });
+chrome.runtime.onConnect.addListener((pConnection) => {
+    connections[pConnection.sender.frameId] = pConnection;
 
-    connection.onMessage.addListener(
+    pConnection.onMessage.addListener(
         (res, sender) => {
+            console.log("a");
             let frameId = sender.sender.frameId;
 
             switch (res.type) {
                 case 'getVideoList':
                     videoList.setting(frameId, res.data);
-                    videoList.unload();
                     break;
             }
         }
     );
 
-    videoList.loading();
-    /* frameId => true : post message whole frames */
-    connection.postMessage({ type: "getVideoList" });
+    pConnection.postMessage({ type: "getVideoList" });
 });

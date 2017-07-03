@@ -1,54 +1,21 @@
-console.log(new Date());
 (window => {
-
-
-    const getRect = v => {
-        let p = getPosition(v);
-
-        return {
-            w: v.clientWidth,
-            h: v.clientHeight,
-            x: p.x,
-            y: p.y
-        };
-    };
-
-    const connection = chrome.runtime.connect();
 
     let key = Math.random() + Math.random() + Math.random();
     let frameId = undefined;
-/* connect 에서 send 메세지로변경 */
-    chrome.runtime.sendMessage({ type:'sendFrameId'},  (response)=> {
-    });
 
-    connection.postMessage({
-        type: "sendFrameId",
-        data:{
-            key: key
-        }
-    });
+    const connection = chrome.runtime.connect();
 
     connection.onMessage.addListener(
         ({ type, data, callback }) => {
-            if(frameId && typeof data.frameId === "number" && data.frameId !== frameId){
-                return;
-            }
             let res = undefined;
 
             switch (type) {
-                case 'sendFrameId':
-                    if (key === data.key) {
-                        console.log("pass" + key);
-                        frameId = data.frameId;
-                    }
-                    break;
 
                 case 'getVideoList':
                     res = videos.length;
                     break;
 
                 case 'highlightVideoArea':
-
                     var v = videos[data.index];
                     let { x, y, w, h } = getRect(v);
 
@@ -108,10 +75,6 @@ console.log(new Date());
                         area.style.top = (h + y - area.clientHeight - 10 - window.scrollY) + 'px';
                         area.style.left = (w / 2 - area.clientWidth / 2 + x - window.scrollX) + 'px';
                     });
-
-                case 'console-log':
-                    console.log(data);
-                    return;
             }
 
             if (callback !== false) {
@@ -142,6 +105,17 @@ console.log(new Date());
         return pos;
     };
 
+    const getRect = v => {
+        let p = getPosition(v);
+
+        return {
+            w: v.clientWidth,
+            h: v.clientHeight,
+            x: p.x,
+            y: p.y
+        };
+    };
+
     Array.from(document.getElementsByTagName('video')).map(
         v => {
             videos.push(v);
@@ -153,7 +127,6 @@ console.log(new Date());
 
     Array.from(document.querySelectorAll('div.-chrome-subtitles-item-video-selector')).map(e => e.remove());
     videoSelector.classList.add('-chrome-subtitles-item-video-selector');
-
     videoSelector.setAttribute('style', 'position:fixed; background-color:rgba(2, 136, 209, 0.5); z-index:2147483647; pointer-events: none;');
     document.body.appendChild(videoSelector);
 
@@ -168,7 +141,7 @@ console.log(new Date());
                     area.style.left = (w / 2 - area.clientWidth / 2 + x - window.scrollX) + 'px';
                 }
             );
-        }
+        };
 
     window.addEventListener('scroll', resize);
     window.addEventListener('resize', resize);
