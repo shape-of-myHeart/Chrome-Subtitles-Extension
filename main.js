@@ -112,7 +112,6 @@ chrome.runtime.onConnect.addListener((pConnection) => {
 
     pConnection.onMessage.addListener(
         (res, sender) => {
-            console.log("a");
             let frameId = sender.sender.frameId;
 
             switch (res.type) {
