@@ -99,7 +99,7 @@ fileUpload.addEventListener("change", e => {
         submit.unload();
     }
 
-    reader.readAsText(file, "CP1251");
+    reader.readAsText(file, "euc-kr");
 });
 
 /* execute script */
