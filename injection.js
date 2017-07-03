@@ -1,8 +1,4 @@
 (window => {
-
-    let key = Math.random() + Math.random() + Math.random();
-    let frameId = undefined;
-
     const connection = chrome.runtime.connect();
 
     connection.onMessage.addListener(
