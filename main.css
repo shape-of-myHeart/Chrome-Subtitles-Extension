@@ -116,6 +116,9 @@ body, html{
     width:100%;
     outline:1px solid #c0d2ff;
 }
+.container > .video-list.empty > .title{
+    display: none;
+}
 .container > .video-list > .title{
     padding:5px 10px;
     font-weight: bold;
@@ -133,15 +136,23 @@ body, html{
     text-align: center;
     font-weight: bold;
     padding:5px 0;
-    background:#e5e5e5;
+    background:#f5f5f5;
     border-color:#d5d5d5;
 }
 .container > .video-list.empty::before{
     content:"Not Found Video Tags.";
 }
 
-.container > .video-list > .btn-pop ~ .item{
+.container > .video-list > .item.applied{
     width:80%;
+    
+    border-top:1px solid #c0d2ff;
+    border-bottom:1px solid #c0d2ff;
+    
+    margin:1px 0;
+}
+.container > .video-list > .item.applied.error-no-subtitles:after{
+    content:"";
 }
 
 .container > .video-list > .item{
@@ -180,8 +191,14 @@ body, html{
     width:20%;
     padding:5px 0px;
     text-align:center;
+
     border-left:1px solid #c0d2ff;
-    background:#fff;
+    border-top:1px solid #c0d2ff;
+    border-bottom:1px solid #c0d2ff;
+
+    margin:1px 0;
+
+    background:#fafcff;
 }
 .container > .video-list > .btn-pop::before{
     content:'Cancel';

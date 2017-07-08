@@ -49,6 +49,8 @@ videoList.setting = (frameId, {length, fileNames}) => {
             connection.postMessage({ type: "cancelSubtitles", data: { index: i } });
 
             div.innerHTML = `Video <b>${frameId}</b>-${i + 1}`;
+            div.classList.remove("applied");
+
             popDiv.remove();
         });
     };
@@ -83,14 +85,18 @@ videoList.setting = (frameId, {length, fileNames}) => {
                 let fileName = fileUpload.files.item(0).name;
                 div.textContent = fileName;
 
+                if(document.querySelectorAll(`.btn-pop[data-frame-id="${frameId}"][data-index="${i}"]`).length === 0){
+                    createPop(i, div);
+                }
+
                 connection.postMessage({ type: "applySubtitles", data: { index: i, smiData: activedSmi, fileName: fileName } });
-                createPop(i, div);
             }
         );
         
         videoList.appendChild(div);
 
         if (fileNames[i]) {
+            div.classList.add("applied");
             createPop(i, div);
         }
     }
