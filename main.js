@@ -16,13 +16,11 @@ const videos = {};
 videoList.loading = () => videoList.classList.add('loading');
 videoList.unload = () => videoList.classList.remove('loading');
 
-videoList.setting = (frameId, length) => {
-    console.log(videos);
-    console.log(length);
-
+videoList.setting = (frameId, {length, fileNames}) => {
     videoList.classList.remove("folded");
     videoList.classList.remove("empty");
 
+    const connection = connections[frameId];
     videos[frameId] = length;
 
     let keys = Object.keys(videos);
@@ -37,6 +35,24 @@ videoList.setting = (frameId, length) => {
         return;
     }
 
+    const createPop = (i, div) => {
+        let popDiv = document.createElement('div');
+
+        popDiv.classList.add("btn-pop");
+
+        popDiv.setAttribute("data-frame-id", frameId);
+        popDiv.setAttribute("data-index", i);
+
+        videoList.insertBefore(popDiv, div);
+
+        popDiv.addEventListener('click', () => {
+            connection.postMessage({ type: "cancelSubtitles", data: { index: i } });
+
+            div.innerHTML = `Video <b>${frameId}</b>-${i + 1}`;
+            popDiv.remove();
+        });
+    };
+
     for (let i = 0; i < length; i++) {
         let div = document.createElement("div");
 
@@ -44,14 +60,14 @@ videoList.setting = (frameId, length) => {
         div.setAttribute("data-frame-id", frameId);
         div.setAttribute("data-index", i);
 
-        div.innerHTML = `Video <b>${frameId}</b>-${i + 1}`;
-
+        div.innerHTML = fileNames[i] || `Video <b>${frameId}</b>-${i + 1}`;
+        
         div.addEventListener("mouseenter",
-            () => connections[frameId].postMessage({ type: "highlightVideoArea", data: { index: i } })
+            () => connection.postMessage({ type: "highlightVideoArea", data: { index: i } })
         );
 
         div.addEventListener("mouseleave",
-            () => connections[frameId].postMessage({ type: "unHighlightVideoArea", data: { index: i } })
+            () => connection.postMessage({ type: "unHighlightVideoArea", data: { index: i } })
         );
 
         div.addEventListener("click",
@@ -63,12 +79,20 @@ videoList.setting = (frameId, length) => {
 
                 div.classList.remove("error-no-subtitles");
                 div.classList.add("applied");
-                
-                connections[frameId].postMessage({ type: "applySubtitles", data: { index: i, smiData: activedSmi } })
+
+                let fileName = fileUpload.files.item(0).name;
+                div.textContent = fileName;
+
+                connection.postMessage({ type: "applySubtitles", data: { index: i, smiData: activedSmi, fileName: fileName } });
+                createPop(i, div);
             }
         );
-
+        
         videoList.appendChild(div);
+
+        if (fileNames[i]) {
+            createPop(i, div);
+        }
     }
 };
 
@@ -91,7 +115,7 @@ fileUpload.addEventListener("change", e => {
         information.setting({
             title: fileUpload.files.item(0).name
         });
-
+        console.log(e.target.result);
         activedSmi = e.target.result;
     };
 
@@ -99,7 +123,7 @@ fileUpload.addEventListener("change", e => {
         submit.unload();
     }
 
-    reader.readAsText(file, "euc-kr");
+    reader.readAsText(file, 'euc-kr');
 });
 
 /* execute script */

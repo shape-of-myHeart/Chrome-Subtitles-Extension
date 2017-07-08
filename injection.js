@@ -8,8 +8,32 @@
             switch (type) {
 
                 case 'getVideoList':
-                    res = videos.length;
+                    res = {
+                        length: videos.length,
+                        fileNames: videos.map(
+                            obj => obj._Chrome_Subtitles_Data && obj._Chrome_Subtitles_Data.fileName
+                        )
+                    };
                     break;
+
+                case 'cancelSubtitles':
+                    var v = videos[data.index];
+
+                    v._Chrome_Subtiles_Time_Update = false;
+
+                    v._Chrome_Subtitles_Dom_Area.remove();
+                    v._Chrome_Subtitles_Dom_Alert.remove();
+
+                    delete v._Chrome_Subtitles_Data;
+                    delete v._Chrome_Subtitles_Dom_Area;
+                    delete v._Chrome_Subtitles_Dom_Alert;
+                    delete v._Chrome_Subtitles_Alert;
+                    delete v._Chrome_Subtiles_Alert_Timer;
+
+
+                    res = data.index;
+                    
+                    return;
 
                 case 'highlightVideoArea':
                     var v = videos[data.index];
@@ -31,46 +55,76 @@
                 case 'applySubtitles':
                     var v = videos[data.index];
 
+                    /* Set Subtitles Datas */
                     v._Chrome_Subtitles_Data = new Smi();
                     v._Chrome_Subtitles_Data.parse(data.smiData);
 
-                    v._Chrome_Subtitles_Dom_Area = (() => {
-                        let videoSubtitles = document.querySelector(`div.-chrome-subtitles-item-video-subtitles[data-video-index='${data.index}']`);
+                    v._Chrome_Subtitles_Data.fileName = data.fileName;
 
-                        if (!videoSubtitles) {
-                            videoSubtitles = document.createElement('div');
-                            videoSubtitles.classList.add('-chrome-subtitles-item-video-subtitles');
+                    /* Set Subtitles Output Area */
+                    v._Chrome_Subtitles_Dom_Area = (
+                        () => {
+                            let videoSubtitles = document.querySelector(`div.-chrome-subtitles-item-video-subtitles[data-video-index='${data.index}']`);
 
-                            videoSubtitles.setAttribute('data-video-index', data.index);
-                            videoSubtitles.setAttribute('style', 'position:fixed;background-color:rgba(8, 8, 8, 0.74902);border-radius: 2.66667px;font-size:21px;color:#fff;-webkit-box-decoration-break: clone;z-index:2147483647;');
+                            if (!videoSubtitles) {
+                                videoSubtitles = document.createElement('div');
 
-                            document.body.appendChild(videoSubtitles);
+                                videoSubtitles.classList.add('-chrome-subtitles-item-video-subtitles');
+                                videoSubtitles.setAttribute('data-video-index', data.index);
+                                videoSubtitles.setAttribute('style', 'position:fixed;background-color:rgba(8, 8, 8, 0.74902);border-radius: 2.66667px;font-size:21px;color:#fff;-webkit-box-decoration-break: clone;z-index:2147483647;');
+
+                                document.body.appendChild(videoSubtitles);
+                            }
+
+                            return videoSubtitles;
+                        }
+                    )();
+
+                    /* Set Alert Area */
+                    v._Chrome_Subtitles_Dom_Alert = (
+                        () => {
+                            let div = document.querySelector(`div.-chrome-subtitles-item-alert[data-video-index='${data.index}']`);
+
+                            if (!div) {
+                                div = document.createElement('div');
+
+                                div.classList.add('-chrome-subtitles-item-alert');
+                                div.setAttribute('data-video-index', data.index);
+                                div.setAttribute('style', 'position:fixed;font-size:21px;color:#fff;-webkit-box-decoration-break: clone;z-index:2147483647;');
+
+                                document.body.appendChild(div);
+                            }
+
+                            return div;
+                        }
+                    )();
+
+                    v._Chrome_Subtiles_Alert = msg => {
+                        let area = v._Chrome_Subtitles_Dom_Alert;
+
+                        let { x, y, w, h } = getRect(v);
+                        area.style.top = (y + 10) + 'px';
+                        area.style.left = (x + 10) + 'px';
+
+                        area.style.width = (w - 10) + 'px';
+
+                        area.innerHTML = msg;
+
+                        if (v._Chrome_Subtiles_Alert_Timer) {
+                            clearTimeout(v._Chrome_Subtiles_Alert_Timer);
                         }
 
-                        return videoSubtitles;
-                    })();
+                        v._Chrome_Subtiles_Alert_Timer = setTimeout(
+                            () => area.innerHTML = null,
+                            5000
+                        );
+                    }
+                    v._Chrome_Subtiles_Alert(`Apllied Subtitles : ${data.fileName}`);
 
-                    v.addEventListener('timeupdate', function (e) {
-                        let smi = this._Chrome_Subtitles_Data;
-                        let area = this._Chrome_Subtitles_Dom_Area;
-
-                        let currentTime = this.currentTime;
-                        let index = smi.getIndexByTime(currentTime * 1000);
-
-                        if (index === this.subtitlesIndex) {
-                            return;
-                        } else {
-                            this.subtitlesIndex = index;
-                        }
-
-                        let text = smi.getTextByIndex(index);
-                        let { x, y, w, h } = getRect(this);
-
-                        area.innerHTML = text === undefined ? null : text;
-
-                        area.style.top = (h + y - area.clientHeight - 10 - window.scrollY) + 'px';
-                        area.style.left = (w / 2 - area.clientWidth / 2 + x - window.scrollX) + 'px';
-                    });
+                    if (v._Chrome_Subtiles_Time_Update !== true) {
+                        v.addEventListener('timeupdate', timeupdate);
+                    }
+                    v._Chrome_Subtiles_Time_Update = true;
             }
 
             if (callback !== false) {
@@ -126,21 +180,56 @@
     videoSelector.setAttribute('style', 'position:fixed; background-color:rgba(2, 136, 209, 0.5); z-index:2147483647; pointer-events: none;');
     document.body.appendChild(videoSelector);
 
-    var resize =
+    const resize =
         () => {
             videos.map(
                 video => {
-                    let area = video._Chrome_Subtitles_Dom_Area;
+                    var area = video._Chrome_Subtitles_Dom_Area;
+                    var alert = video._Chrome_Subtitles_Dom_Alert;
+
                     let { x, y, w, h } = getRect(video);
 
-                    area.style.top = (h + y - area.clientHeight - 10 - window.scrollY) + 'px';
-                    area.style.left = (w / 2 - area.clientWidth / 2 + x - window.scrollX) + 'px';
+                    if (area) {
+                        area.style.top = (h + y - area.clientHeight - 10 - window.scrollY) + 'px';
+                        area.style.left = (w / 2 - area.clientWidth / 2 + x - window.scrollX) + 'px';
+                    }
+
+                    if (alert) {
+                        alert.style.top = (y + 10 - window.scrollY) + 'px';
+                        alert.style.left = (x + 10 - window.scrollX) + 'px';
+                    }
                 }
             );
         };
-
+    resize();
     window.addEventListener('scroll', resize);
     window.addEventListener('resize', resize);
+
+    function timeupdate(e) {
+        if(this._Chrome_Subtiles_Time_Update !== true){
+            return;
+        }
+        
+        let smi = this._Chrome_Subtitles_Data;
+        let area = this._Chrome_Subtitles_Dom_Area;
+
+        let currentTime = this.currentTime;
+        let index = smi.getIndexByTime(currentTime * 1000);
+
+        if (index === this.subtitlesIndex) {
+            return;
+        } else {
+            this.subtitlesIndex = index;
+        }
+
+        let text = smi.getTextByIndex(index);
+        let { x, y, w, h } = getRect(this);
+
+        area.innerHTML = text === undefined ? null : text;
+
+        area.style.top = (h + y - area.clientHeight - 10 - window.scrollY) + 'px';
+        area.style.left = (w / 2 - area.clientWidth / 2 + x - window.scrollX) + 'px';
+    }
 
     /* Smi Class Settings */
     if (!window._Chrome_Subtiles_Service) {
@@ -153,7 +242,7 @@
                     this.getTextByIndex = i => texts[i];
                     this.getTextByTime = i => texts[this.getIndexByTime(i)];
                     this.getIndexByTime = time => {
-                        var s = 0, e = times.length, m, t;
+                        let s = 0, e = times.length, m, t;
 
                         while (s < e) {
                             m = Math.floor((s + e) / 2);
@@ -172,12 +261,18 @@
                         let max = Math.max(s, m);
                         let result = null;
 
+                        if (max >= times.length) {
+                            return times.length - 1;
+                        }
+
                         if (times[min].start <= time && time < times[max].start) {
                             result = min;
                         }
+
                         if (times[max].start <= time) {
                             result = max;
                         }
+
                         if (times[min].start > time && min > 0) {
                             result = min - 1;
                         }
@@ -185,6 +280,7 @@
                         if (result !== null && times[result].end !== null && times[result].end < time) {
                             return null;
                         }
+
                         return result;
                     };
                     this.parse = data => {
@@ -215,8 +311,6 @@
                         texts[texts.length - 1] = texts[texts.length - 1].replace(/<\/?BODY[^>]*>/gi, '');
                         texts[texts.length - 1] = texts[texts.length - 1].replace(/<\/?SAMI[^>]*>/gi, '');
                         texts.shift();
-
-                        // console.log(texts);
                     };
                 }
             }
