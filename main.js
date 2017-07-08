@@ -111,7 +111,7 @@ fileUpload.addEventListener("change", e => {
     
     if(fileUpload.files.item(0).name.substr(-3).toLowerCase() !== "smi"){
         submit.unload();
-        chrome.tabs.executeScript(null, { code: 'alert("This file is not smi File.");', allFrames: true });
+        chrome.tabs.executeScript(null, { code: 'alert("This file is not smi File.");', allFrames: false });
         return;
     }
 
